@@ -1,0 +1,38 @@
+# Backend (Maven)
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# Frontend (Next.js) – see also frontend/.gitignore
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/AGENTS.md
+
+# Logs and local databases
+*.log
+*.mv.db
+*.trace.db
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Orchestrator flight recorder: ephemeral logs, not source
+.claude/context/TOOLS_USED.md
+.claude/context/.current-task
+
+# IDEs and OS
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Playwright MCP scratch output (snapshots, console logs)
+.playwright-mcp/

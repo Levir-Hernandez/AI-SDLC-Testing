@@ -1,0 +1,89 @@
+{
+  "enabledMcpjsonServers": [
+    "playwright"
+  ],
+  "permissions": {
+    "allow": [
+      "mcp__playwright",
+      "Bash(python .claude/scripts/*)",
+      "Bash(./mvnw verify)",
+      "Bash(./mvnw test *)",
+      "Bash(npm run lint)",
+      "Bash(npm run build)",
+      "Bash(npm test)",
+      "Bash(cd backend && ./mvnw verify)",
+      "Bash(cd backend && ./mvnw test *)",
+      "Bash(cd frontend && npm run lint && npm run build)",
+      "Bash(cd frontend && npm run lint)",
+      "Bash(cd frontend && npm run build)",
+      "Bash(cd frontend && npm test)",
+      "Bash(cd backend && ./mvnw *)",
+      "Bash(cd frontend && npm install)",
+      "Bash(cd frontend && npm run *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add -A)",
+      "Bash(git commit *)",
+      "Bash(git stash push *)",
+      "Edit(/backend/**)",
+      "Edit(/frontend/**)"
+    ],
+    "deny": [
+      "mcp__playwright__browser_install"
+    ]
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/task-start.sh\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Read|Write|Edit|Bash|PowerShell|Task|Agent|Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/log-tool-use.sh\""
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/subagent-start.sh\""
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/subagent-stop.sh\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/task-finish.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}

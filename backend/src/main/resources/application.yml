@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: vet-clinic-backend
+  datasource:
+    url: jdbc:h2:mem:vetclinic;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+app:
+  cors:
+    allowed-origins: http://localhost:3000

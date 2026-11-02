@@ -199,7 +199,7 @@ Frontend:
 
 ### I2 — Registration use cases
 
-- **Status:** `pending`
+- **Status:** `completed`
 - **Goal:** Application services register veterinarians (with schedule and account), owners (with account and optional pets) and pets, list them paginated, and enforce owner data scoping, all unit tested.
 - **Covers:** Flow "Register" (service layer); rules "owner name and phone required; phone unique", "pet belongs to one owner, has name, species and breed; breed must belong to species", "schedule blocks do not overlap", "veterinarian costs are zero or more", "owners see only their own pets"; Roles (account per owner and veterinarian, A1, A2).
 - **Depends on:** I1

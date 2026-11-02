@@ -90,7 +90,7 @@ Module 3 QA found these defects in the previous build of this plan. Every increm
 
 ### I1 — Core domain model and appointment lifecycle
 
-- **Status:** `pending`
+- **Status:** `completed`
 - **Goal:** Every entity, enum and repository of the domain exists with its invariants, and the centralized `AppointmentLifecycle` enforces the full `TASK.md` transition table, all proven by unit and JPA slice tests.
 - **Covers:** Entities (Owner, Pet, Veterinarian, Service, Appointment, Payment, Service history as appointments per pet); Pets species/breeds list; Services fixed list; Appointment lifecycle (full transition table, final states, "any other transition is rejected"); rules "schedule blocks on the same weekday do not overlap, each starts before it ends", "breed must belong to species", "one appointment covers one service, one pet, one veterinarian", "prices and veterinarian costs are zero or more", "observations can be edited until closed or cancelled"; Technology "money uses exact decimal types"; acceptance "each status transition works for listed roles, every other rejected" (rules at unit level).
 - **Depends on:** I0

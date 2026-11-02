@@ -11,7 +11,8 @@ import java.time.LocalDateTime;
 @Table(name = "appointment", indexes = {
         @Index(name = "idx_appt_vet_start", columnList = "veterinarian_id,start_at"),
         @Index(name = "idx_appt_pet", columnList = "pet_id"),
-        @Index(name = "idx_appt_status", columnList = "status")})
+        @Index(name = "idx_appt_status", columnList = "status"),
+        @Index(name = "idx_appt_rescheduled_from", columnList = "rescheduled_from_id")})
 public class Appointment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

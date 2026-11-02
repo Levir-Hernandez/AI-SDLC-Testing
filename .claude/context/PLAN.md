@@ -285,7 +285,7 @@ Frontend:
 
 ### I3 — Appointment and payment use cases
 
-- **Status:** `pending`
+- **Status:** `completed`
 - **Goal:** All appointment use cases (availability, walk-in and online booking, confirm, expire, cancel, start, finish, observations, reschedule/reassign, pay, close, scoped queries, debt and pet history) exist as application services in their final shape, unit tested with a fixed `Clock`, with concurrency proven at service level.
 - **Covers:** Flows "Book online", "Book a walk-in", "Visit", "Reschedule or reassign", "Cancel", "Pay and close", "Follow up" (service layer); every lifecycle row (via `AppointmentLifecycle`); rules "slot available when duration fits schedule and does not overlap reserved, scheduled or in-progress appointments", "appointments are booked in the future", "two bookings cannot take the same slot", "total = base price + veterinarian cost, fixed at booking", "one exact payment per finished appointment", "Rescheduled and Closed are final", "owners see only their own appointments"; acceptance "two bookings for same vet and overlapping time cannot both succeed" (service level), "unconfirmed reservation expires and slot becomes free" (service level).
 - **Depends on:** I1, I2
@@ -318,12 +318,12 @@ Frontend:
    - `isBookable(vet, service, start) → boolean`: fits a block, future, grid-aligned.
 2. `BookingService`:
    - `book(CurrentUser, CreateAppointmentRequest(petId, serviceId, veterinarianId, startAt)) → AppointmentResponse`: pet via `PetService.requireAccessible`; RECEPTIONIST → `createScheduled(..., bookedBy RECEPTIONIST)`; OWNER → same checks, status `RESERVED`, `bookedBy = OWNER`, `reservedUntil = now + ttl`; VETERINARIAN → `403`.
-   - `createScheduled(pet, service, vet, start, bookedBy, rescheduledFrom, excludeId) → Appointment`: `start <= now` → `400 START_IN_PAST`; lock vet with `findLockedById`; `!isBookable` → `409 SLOT_UNAVAILABLE`; `existsOverlap(..., excludeId)` → `409 SLOT_TAKEN`; `total = basePrice + costPerService` (scale 2). Shared by booking and reschedule; `@Transactional`.
+   - `createScheduled(pet, service, vet, start, bookedBy, rescheduledFrom, excludeId) → Appointment`: `start <= now` → `400 START_IN_PAST`; lock vet with `findLockedById`; `!isBookable` → `409 SLOT_UNAVAILABLE`; `existsOverlap(..., excludeId)` → `409 SLOT_TAKEN`; `total = basePrice + costPerService` (scale 2). Reject negative `basePrice`/`costPerService` defensively with `400 VALIDATION_FAILED` (open I1 finding money-non-negative-unenforced; DTO `@DecimalMin` already covers input). Shared by booking and reschedule; `@Transactional`.
 3. `AppointmentActionService` (each `@Transactional`, scoped load through `AppointmentQueryService.requireScoped`, status change only via `lifecycle.apply`):
    - `confirm(CurrentUser, id)`; `expireDue()`: RESERVED with `reservedUntil <= now` → EXPIRE by SYSTEM, reason "Reservation expired".
    - `cancel(CurrentUser, id, reason)`.
    - `start`, `finish(CurrentUser, id)`: vet must be the assigned one (else `404`).
-   - `updateObservations(CurrentUser, id, text)`: owners → `403`; `!canEditObservations` → `409 OBSERVATIONS_LOCKED`.
+   - `updateObservations(CurrentUser, id, text)`: owners → `403`; `!canEditObservations` → `409 OBSERVATIONS_LOCKED`. This service is the only caller of `Appointment.setObservations` and must enforce the guard before it (open I1 finding observations-unguarded-setter).
    - `reschedule(CurrentUser, id, RescheduleRequest(veterinarianId, startAt))`: `lifecycle.apply(RESCHEDULE)`; `bookingService.createScheduled(..., RECEPTIONIST, original, excludeId = original.id)` (A6); conflict rolls back so original stays unchanged; returns new appointment.
    - `close(CurrentUser, id)`: `lifecycle.apply(CLOSE)` from FINISHED or PAID.
 4. `PaymentService.pay(CurrentUser, appointmentId, PaymentRequest(@NotNull @DecimalMin("0.00") amount)) → PaymentResponse`: existing payment → `409 ALREADY_PAID`; `lifecycle.apply(PAY, actor)` (non-finished → `409 INVALID_TRANSITION`, non-receptionist → 403); `amount.compareTo(total) != 0` → `409 AMOUNT_MISMATCH` "Payment must equal total 60.00"; save payment and PAID in one transaction.
@@ -411,6 +411,7 @@ Frontend:
   - `backend/src/test/java/com/vetclinic/auth/AuthControllerTests.java`, `backend/src/test/java/com/vetclinic/auth/AuthFlowIntegrationTests.java`, `backend/src/test/java/com/vetclinic/seed/DemoDataSeederTests.java`, `backend/src/test/java/com/vetclinic/support/TestJwt.java` (helper issuing test tokens per role).
 - **Modify:**
   - `backend/pom.xml`: add `spring-boot-starter-oauth2-resource-server` (Boot-managed).
+  - `backend/src/main/java/com/vetclinic/owner/dto/CreateOwnerRequest.java`, `backend/src/main/java/com/vetclinic/veterinarian/dto/CreateVeterinarianRequest.java`: add `@NotBlank` on `password` (null currently passes `@Size(min=6)`; finding null-password-accepted) and extend the existing DTO/controller tests with a null-password rejection.
   - `backend/src/main/java/com/vetclinic/auth/CurrentUser.java`: add `from(Authentication)` reading `JwtAuthenticationToken` claims.
   - `backend/src/main/java/com/vetclinic/config/SecurityConfig.java`: stateless JWT resource server, public matchers, `@EnableMethodSecurity`, `JwtDecoder`/`JwtEncoder` beans, role converter, JSON 401/403 handlers (uses `PasswordConfig` from I2).
   - `backend/src/main/resources/application.yml`: `app.jwt.secret: ${APP_JWT_SECRET:dev-only-change-me-...}` (marked dev default), `app.jwt.ttl: PT8H`.
@@ -1415,3 +1416,4 @@ Frontend:
 
 | Date | Mode | Increments | Change |
 |---|---|---|---|
+| 2026-11-01 | Mode 2 | I3, I4 | I2 deviations/findings folded in: I3 enforces observations guard and non-negative money; I4 adds @NotBlank on password DTOs. n-plus-one-owner-pets left open (optimization, no plan impact). I5 unchanged. |

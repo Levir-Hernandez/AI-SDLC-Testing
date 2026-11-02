@@ -2,11 +2,14 @@ package com.vetclinic.appointment;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
+public interface AppointmentRepository extends JpaRepository<Appointment, Long>, JpaSpecificationExecutor<Appointment> {
     String BLOCKING = "(a.status in (com.vetclinic.appointment.AppointmentStatus.SCHEDULED,"
             + " com.vetclinic.appointment.AppointmentStatus.IN_PROGRESS)"
             + " or (a.status = com.vetclinic.appointment.AppointmentStatus.RESERVED and a.reservedUntil > :now))";
@@ -25,4 +28,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findByStatusAndReservedUntilLessThanEqual(AppointmentStatus status, LocalDateTime time);
 
     List<Appointment> findByRescheduledFromId(Long id);
+
+    Page<Appointment> findByPetId(Long petId, Pageable pageable);
 }

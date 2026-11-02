@@ -20,5 +20,8 @@ management:
         include: health,info
 
 app:
+  booking:
+    reservation-ttl: PT10M
+    expiry-sweep: PT30S
   cors:
     allowed-origins: http://localhost:3000

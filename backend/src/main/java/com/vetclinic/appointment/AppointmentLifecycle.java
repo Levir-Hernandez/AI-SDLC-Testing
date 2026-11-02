@@ -48,6 +48,8 @@ public class AppointmentLifecycle {
                 throw new BadRequestException("REASON_REQUIRED", "A cancellation reason is required");
             }
             reason = ctx.reason().trim();
+        } else if (action == EXPIRE) {
+            reason = ctx.reason();
         }
         if (action == CONFIRM && (a.getReservedUntil() == null || !a.getReservedUntil().isAfter(ctx.now()))) {
             throw new ConflictException("RESERVATION_EXPIRED", "The reservation has expired");
